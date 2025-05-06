@@ -1,0 +1,18 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+}
+input {
+    margin: 5px;
+    padding: 5px;
+}
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+@media (min-width: 600px) {
+    .input-group {
+        flex-direction: row;
+    }
+}

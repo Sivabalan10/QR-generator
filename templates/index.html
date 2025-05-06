@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QR Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input { margin: 5px; padding: 5px; width: 80%; }
+    button { margin: 5px; padding: 10px; }
+    .qr-container { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Welcome {{ session['user']['email'] }}</h2>
+  <p>You used {{ usage }}/30 QRs</p>
+  <div id="inputs">
+    <div>
+      <input type="text" placeholder="QR Name" class="qr-name">
+      <input type="url" placeholder="URL" class="qr-url">
+    </div>
+  </div>
+  <button onclick="addInput()">Add More</button>
+  <button onclick="generate()">Generate QR</button>
+  <a href="/logout">Logout</a>
+
+  <div class="qr-container" id="results"></div>
+
+  <script>
+    function addInput() {
+      const div = document.createElement('div');
+      div.innerHTML = `<input type="text" placeholder="QR Name" class="qr-name">
+                       <input type="url" placeholder="URL" class="qr-url">`;
+      document.getElementById('inputs').appendChild(div);
+    }
+
+    async function generate() {
+      const names = document.querySelectorAll('.qr-name');
+      const urls = document.querySelectorAll('.qr-url');
+      let items = [];
+
+      for (let i = 0; i < names.length; i++) {
+        if (names[i].value && urls[i].value) {
+          items.push({ name: names[i].value, url: urls[i].value });
+        }
+      }
+
+      document.getElementById('results').innerHTML = '⏳ Generating...';
+
+      const res = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls: items })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+
+      let html = '';
+      data.results.forEach(qr => {
+        html += `<p><strong>${qr.name}</strong>: ${qr.url}</p>
+                 <img src="${qr.image}" width="200"><br><a href="${qr.image}" download="${qr.name}.png">Download</a><hr>`;
+      });
+      document.getElementById('results').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
